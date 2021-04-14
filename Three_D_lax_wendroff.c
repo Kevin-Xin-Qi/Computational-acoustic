@@ -121,42 +121,7 @@ void main()
 	}
 
 
-	//long double** u = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	u[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** u_p = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	u_p[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** r_mat = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	r_mat[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** s_mat = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	s_mat[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** l_mat = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	l_mat[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** s_mat_n = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	s_mat_n[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** r_mat_n = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	r_mat_n[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** l_mat_n = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	l_mat_n[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
-	//long double** s_mat_p = malloc(sizeof(long double*) * (X + 1));
-	//for (i = 0; i < X + 1; i++) {
-	//	s_mat_p[i] = malloc(sizeof(long double) * (Y + 1));
-	//}
+
 
 
 
