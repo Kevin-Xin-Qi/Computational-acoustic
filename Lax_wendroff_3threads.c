@@ -12,7 +12,7 @@
 
 //pthread_mutex_t test_mutex;
 #define N   3
-#define AVE 17*12*45/N
+#define AVE 17*12/N
 #define X AVE*N+1
 #define Y AVE*N+1
 #define Z 50
@@ -25,12 +25,8 @@ double Coeff_x = step_ratio;
 
 
 
+char* names[8];
 
-
-
-
-
-char* names[4];
 
 double** u_n = NULL;
 double** u = NULL;
@@ -198,6 +194,16 @@ void main()
 
 
 		t2 = clock();
+		for (j = 0; j <= Y; j++) {
+			for (i = 0; i <= X; i++) {
+				u_p[i][j] = u[i][j];
+				u[i][j] = u_n[i][j];
+				r_mat[i][j] = r_mat_n[i][j];
+				l_mat[i][j] = l_mat_n[i][j];
+				s_mat[i][j] = s_mat_n[i][j];
+				s_mat_p[i][j] = s_mat[i][j];
+			}
+		}
 
 		t3 = clock();
 
@@ -256,17 +262,17 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 				u_n[i][j] = u[i][j] + 0.5 * time_step * (s_mat_n[i][j] - s_mat[i][j]);
 			}
 		}
-		for (j = 0; j <= end; j++) {
-			for (i = 0; i <= X; i++) {
-				u_p[i][j] = u[i][j];
-				u[i][j] = u_n[i][j];
-				r_mat[i][j] = r_mat_n[i][j];
-				l_mat[i][j] = l_mat_n[i][j];
-				s_mat[i][j] = s_mat_n[i][j];
-				s_mat_p[i][j] = s_mat[i][j];
+		//for (j = 0; j <= end; j++) {
+		//	for (i = 0; i <= X; i++) {
+		//		u_p[i][j] = u[i][j];
+		//		u[i][j] = u_n[i][j];
+		//		r_mat[i][j] = r_mat_n[i][j];
+		//		l_mat[i][j] = l_mat_n[i][j];
+		//		s_mat[i][j] = s_mat_n[i][j];
+		//		s_mat_p[i][j] = s_mat[i][j];
 
-			}
-		}
+		//	}
+		//}
 
 		/*if (t == 0) {
 			FILE* fpWrite = fopen(names[n], "w");
@@ -315,16 +321,16 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 				u_n[i][j] = u[i][j] + 0.5 * time_step * (s_mat_n[i][j] - s_mat[i][j]);
 			}
 		}
-		for (j = start; j <= Y; j++) {
-			for (i = 0; i <= X; i++) {
-				u_p[i][j] = u[i][j];
-				u[i][j] = u_n[i][j];
-				r_mat[i][j] = r_mat_n[i][j];
-				l_mat[i][j] = l_mat_n[i][j];
-				s_mat[i][j] = s_mat_n[i][j];
-				s_mat_p[i][j] = s_mat[i][j];
-			}
-		}
+		//for (j = start; j <= Y; j++) {
+		//	for (i = 0; i <= X; i++) {
+		//		u_p[i][j] = u[i][j];
+		//		u[i][j] = u_n[i][j];
+		//		r_mat[i][j] = r_mat_n[i][j];
+		//		l_mat[i][j] = l_mat_n[i][j];
+		//		s_mat[i][j] = s_mat_n[i][j];
+		//		s_mat_p[i][j] = s_mat[i][j];
+		//	}
+		//}
 		/*if (t == 0) {
 			FILE* fpWrite = fopen(names[n], "w");
 			if (fpWrite == NULL)
@@ -370,16 +376,16 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 				u_n[i][j] = u[i][j] + 0.5 * time_step * (s_mat_n[i][j] - s_mat[i][j]);
 			}
 		}
-		for (j = start; j <= end; j++) {
-			for (i = 0; i <= X; i++) {
-				u_p[i][j] = u[i][j];
-				u[i][j] = u_n[i][j];
-				r_mat[i][j] = r_mat_n[i][j];
-				l_mat[i][j] = l_mat_n[i][j];
-				s_mat[i][j] = s_mat_n[i][j];
-				s_mat_p[i][j] = s_mat[i][j];
-			}
-		}
+		//for (j = start; j <= end; j++) {
+		//	for (i = 0; i <= X; i++) {
+		//		u_p[i][j] = u[i][j];
+		//		u[i][j] = u_n[i][j];
+		//		r_mat[i][j] = r_mat_n[i][j];
+		//		l_mat[i][j] = l_mat_n[i][j];
+		//		s_mat[i][j] = s_mat_n[i][j];
+		//		s_mat_p[i][j] = s_mat[i][j];
+		//	}
+		//}
 		/*if (t == 0) {
 			FILE* fpWrite = fopen(names[n], "w");
 			if (fpWrite == NULL)
