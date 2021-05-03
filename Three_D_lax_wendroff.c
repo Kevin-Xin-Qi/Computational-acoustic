@@ -8,14 +8,14 @@
 #define M_PIl 3.141592653589793238462643383279502884L /* pi */
 #define grid_size_x 0.01
 #define grid_size_y 0.01
-#define step_ratio 0.25
+#define step_ratio 0.26
 #define c0 340
 #include<pthread.h>
 #include<time.h>
 #include <stdint.h>
 
 #define N   3
-#define AVE 17*12/N
+#define AVE 3*9/N
 #define X AVE*N+1
 #define Y AVE*N+1
 #define Z AVE*N+1
@@ -37,7 +37,7 @@ double*** q_mat = NULL;
 double*** q_mat_n = NULL;
 
 char* names[8] ;
-int i, j, k, t, P_coeff, id;
+int  t;
 
 #pragma comment(lib,"pthreadVC2.lib")
 void main()
@@ -46,32 +46,32 @@ void main()
 	t0 = clock();
 
 
-	double Coeff_x = c0 * time_step / grid_size_x;
+	 Coeff_x = c0 * time_step / grid_size_x;
 
 	void* lax_wendroff_advection_all_in_1(void* arg);
 
 	double   square_of_c,  time, t0_g, tp_g, square_of_Coeff_x, Q_x;
-
-	P_coeff = 1024 * 1024;
+	int i, j, k, id;
+	double P_coeff = 1024 * 1024;
 
 	pthread_t* pthread_id = NULL; //
 	pthread_id = (pthread_t*)malloc(N * sizeof(pthread_t));
 
 	char names1[] = { "wave_data_lax_wendroff_3D_t1.txt" };
-	names[0] = &names1;
+	names[0] = names1;
 	char names2[] = { "wave_data_lax_wendroff_3D_t2.txt" };
-	names[1] = &names2;
+	names[1] = names2;
 	char names3[] = { "wave_data_lax_wendroff_3D_t3.txt" };
-	names[2] = &names3;
+	names[2] = names3;
 	char names4[] = { "wave_data_lax_wendroff_3D_t4.txt" };
-	names[3] = &names4;
-	char names5[] = { "wave_data_lax_wendroff_t5.txt" };
+	names[3] = names4;
+	char names5[] = { "wave_data_lax_wendroff_3D_t5.txt" };
 	names[4] = names5;
-	char names6[] = { "wave_data_lax_wendroff_t6.txt" };
+	char names6[] = { "wave_data_lax_wendroff_3D_t6.txt" };
 	names[5] = names6;
-	char names7[] = { "wave_data_lax_wendroff_t7.txt" };
+	char names7[] = { "wave_data_lax_wendroff_3D_t7.txt" };
 	names[6] = names7;
-	char names8[] = { "wave_data_lax_wendroff_t8.txt" };
+	char names8[] = { "wave_data_lax_wendroff_3D_t8.txt" };
 	names[7] = names8;
 
 
@@ -199,28 +199,29 @@ void main()
 	for (k = 0; k <= Z; k++) {
 		for (j = 0; j <= Y; j++) {
 			for (i = 0; i <= X; i++) {
-				s_mat_p[i][j][k] = r_mat_n[i][j][k] = s_mat_n[i][j][k] = l_mat_n[i][j][k] = r_mat[i][j][k] = s_mat[i][j][k] = l_mat[i][j][k] = u_p[i][j][k] = u[i][j][k] = u_n[i][j][k] = 0;
+				q_mat[i][j][k]= q_mat_n[i][j][k]=s_mat_p[i][j][k] = r_mat_n[i][j][k] = s_mat_n[i][j][k] = l_mat_n[i][j][k] = r_mat[i][j][k] = s_mat[i][j][k] = l_mat[i][j][k] = u_p[i][j][k] = u[i][j][k] = u_n[i][j][k] = 0;
 			}
 		}
 	}
 
 
 	for (t = 0; t <= T; t++) {
-		u[(int)mid_X][(int)mid_Y][(int)mid_Z] = P_coeff* exp(-pow((t - t0_g + 1) / tp_g, 2));
+		u[(int)mid_X][(int)mid_Y][(int)mid_Z] = P_coeff * exp(-pow((t - t0_g + 1) / tp_g, 2));
 		if (t == 0) {
 			for (k = 1; k <= Z - 1; k++) {
 				for (j = 1; j <= Y - 1; j++) {
 					for (i = 1; i <= X - 1; i++) {
 						u_n[i][j][k] = 2 * u[i][j][k] - u_p[i][j][k] + square_of_Coeff_x * (u[i - 1][j][k] + u[i][j - 1][k] + u[i + 1][j][k] + u[i][j + 1][k] + u[i][j][k + 1] + u[i][j][k - 1] - 6 * u[i][j][k]);
+						//printf("%f",u_n[i][j][k]);
 					}
 				}
 			}
 		}
 
-		r_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = c0 * (u[(int)mid_X + 1][(int)mid_Y][(int)mid_Z] - u[(int)mid_X - 1][(int)mid_Y][(int)mid_Z]) / (2.0 * grid_size_x);
-		l_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = c0 * (u[(int)mid_X][(int)mid_Y + 1][(int)mid_Z] - u[(int)mid_X][(int)mid_Y - 1][(int)mid_Z]) / (2.0 * grid_size_x);
-		q_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = c0 * (u[(int)mid_X][(int)mid_Y][(int)mid_Z + 1] - u[(int)mid_X][(int)mid_Y][(int)mid_Z - 1]) / (2.0 * grid_size_x);
-		s_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = 2 * (u[(int)mid_X][(int)mid_Y][(int)mid_Z] - u_p[(int)mid_X][(int)mid_Y][(int)mid_Z]) / time_step + s_mat_p[(int)mid_X][(int)mid_Y][(int)mid_Z];
+		r_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = c0 * (u_n[(int)mid_X + 1][(int)mid_Y][(int)mid_Z] - u_n[(int)mid_X - 1][(int)mid_Y][(int)mid_Z]) / (2.0 * grid_size_x);
+		l_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = c0 * (u_n[(int)mid_X][(int)mid_Y + 1][(int)mid_Z] - u_n[(int)mid_X][(int)mid_Y - 1][(int)mid_Z]) / (2.0 * grid_size_x);
+		q_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = c0 * (u_n[(int)mid_X][(int)mid_Y][(int)mid_Z + 1] - u_n[(int)mid_X][(int)mid_Y][(int)mid_Z - 1]) / (2.0 * grid_size_x);
+		s_mat[(int)mid_X][(int)mid_Y][(int)mid_Z] = 2 * (u_n[(int)mid_X][(int)mid_Y][(int)mid_Z] - u_p[(int)mid_X][(int)mid_Y][(int)mid_Z]) / time_step + s_mat_p[(int)mid_X][(int)mid_Y][(int)mid_Z];
 
 		for (id = 0; id < N; id++)
 		{
@@ -231,17 +232,20 @@ void main()
 		{
 			pthread_join(pthread_id[id], NULL);
 		}
-	}
-	for (k = 0; k <= Z; k++) {
-		for (j = 0; j <= Y; j++) {
-			for (i = 0; i <= X; i++) {
-				u_p[i][j][k] = u[i][j][k];
-				u[i][j][k] = u_n[i][j][k];
-				r_mat[i][j][k] = r_mat_n[i][j][k];
-				l_mat[i][j][k] = l_mat_n[i][j][k];
-				q_mat[i][j][k] = q_mat_n[i][j][k];
-				s_mat[i][j][k] = s_mat_n[i][j][k];
-				s_mat_p[i][j][k] = s_mat[i][j][k];
+
+
+		for (k = 0; k <= Z; k++) {
+			for (j = 0; j <= Y; j++) {
+				for (i = 0; i <= X; i++) {
+					u_p[i][j][k] = u[i][j][k];
+					u[i][j][k] = u_n[i][j][k];
+					r_mat[i][j][k] = r_mat_n[i][j][k];
+					l_mat[i][j][k] = l_mat_n[i][j][k];
+					q_mat[i][j][k] = q_mat_n[i][j][k];
+					s_mat[i][j][k] = s_mat_n[i][j][k];
+					s_mat_p[i][j][k] = s_mat[i][j][k];
+
+				}
 			}
 		}
 	}
@@ -274,6 +278,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 	double      start = n * AVE + 1;
 	double      end = start + AVE - 1;
 	long long      i, j,k;
+	double va, vb, vc, vd, ve,s_mat_c, s_mat_l, s_mat_r;
 	switch (n) {
 	case 0:
 		for (k = 1; k <= end; k++) {
@@ -306,14 +311,14 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 			for (k = 0; k <= end; k++) {
 				for (j = 0; j <= Y; j++) {
 					for (i = 0; i <= X; i++) {
-						fprintf(fpWrite, "%lf ", u[i][j][k]);
+						fprintf(fpWrite, "%lf ", u_n[i][j][k]);
 					}
 					fprintf(fpWrite, "\n");
 				}
 			}
 			fclose(fpWrite);
 		}
-		else if (t % 25 == 0) {
+		else if (t % 5 == 0) {
 			FILE* fpWrite = fopen(names[n], "a");
 			if (fpWrite == NULL)
 			{
@@ -322,7 +327,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 			for (k = 0; k <= end; k++) {
 				for (j = 0; j <= Y; j++) {
 					for (i = 0; i <= X; i++) {
-						fprintf(fpWrite, "%lf ", u[i][j][k]);
+						fprintf(fpWrite, "%lf ", u_n[i][j][k]);
 					}
 					fprintf(fpWrite, "\n");
 				}
@@ -363,14 +368,14 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 			for (k = start; k <= Z; k++) {
 				for (j = 0; j <= Y; j++) {
 					for (i = 0; i <= X; i++) {
-						fprintf(fpWrite, "%lf ", u[i][j][k]);
+						fprintf(fpWrite, "%lf ", u_n[i][j][k]);
 					}
 					fprintf(fpWrite, "\n");
 				}
 			}
 			fclose(fpWrite);
 		}
-		else if (t % 25 == 0) {
+		else if (t % 5 == 0) {
 			FILE* fpWrite = fopen(names[n], "a");
 			if (fpWrite == NULL)
 			{
@@ -379,7 +384,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 			for (k = start; k <= Z; k++) {
 				for (j = 0; j <= Y; j++) {
 					for (i = 0; i <= X; i++) {
-						fprintf(fpWrite, "%lf ", u[i][j][k]);
+						fprintf(fpWrite, "%lf ", u_n[i][j][k]);
 					}
 					fprintf(fpWrite, "\n");
 				}
@@ -394,18 +399,42 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 				for (i = 1; i <= X - 1; i++) {
 
 					r_mat_n[i][j][k] = r_mat[i][j][k] + (Coeff_x * (0.5 * (s_mat[i + 1][j][k] - s_mat[i - 1][j][k])) + 0.5 * Coeff_x * (r_mat[i + 1][j][k] - 2.0 * r_mat[i][j][k] + r_mat[i - 1][j][k]));
-					l_mat_n[i][j][k] = l_mat[i][j][k] + (Coeff_x * (0.5 * (s_mat[i][j + 1][k] - s_mat[i][j - 1][k])) + 0.5 * Coeff_x * (l_mat[i][j + 1][k] - 2.0 * l_mat[i][j][k] + l_mat[i][j - 1][k]));
+                    l_mat_n[i][j][k] = l_mat[i][j][k] + (Coeff_x * (0.5 * (s_mat[i][j + 1][k] - s_mat[i][j - 1][k])) + 0.5 * Coeff_x * (l_mat[i][j + 1][k] - 2.0 * l_mat[i][j][k] + l_mat[i][j - 1][k]));
 					q_mat_n[i][j][k] = q_mat[i][j][k] + (Coeff_x * (0.5 * (s_mat[i][j][k + 1] - s_mat[i][j][k - 1])) + 0.5 * Coeff_x * (q_mat[i][j][k + 1] - 2.0 * q_mat[i][j][k] + q_mat[i][j][k - 1]));
 					s_mat_n[i][j][k] = s_mat[i][j][k] + (Coeff_x * (0.5 * (r_mat[i + 1][j][k] - r_mat[i - 1][j][k]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j][k] - 2 * s_mat[i][j][k] + s_mat[i - 1][j][k])))\
 						+ (Coeff_x * (0.5 * (l_mat[i][j + 1][k] - l_mat[i][j - 1][k]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1][k] - 2 * s_mat[i][j][k] + s_mat[i][j - 1][k])))\
 						+ (Coeff_x * (0.5 * (q_mat[i][j][k + 1] - q_mat[i][j][k - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j][k + 1] - 2 * s_mat[i][j][k] + s_mat[i][j][k - 1])));
+					//s_mat_r = s_mat[i + 1][j][k];
+					//s_mat_l = s_mat[i - 1][j][k];
+					//s_mat_c = s_mat[i ][j][k];
+
+
+					//va = s_mat[i + 1][j][k] - s_mat[i - 1][j][k];
+					//vc =  s_mat[i + 1][j][k] - 2 * s_mat[i][j][k] + s_mat[i - 1][j][k];
+					//
+					//vd = (s_mat[i][j + 1][k] - 2 * s_mat[i][j][k] + s_mat[i][j - 1][k]);
+					//ve = (Coeff_x * (0.5 * (r_mat[i + 1][j][k] - r_mat[i - 1][j][k]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j][k] - 2 * s_mat[i][j][k] + s_mat[i - 1][j][k])));
+					//if (k <17 && k > 12&& i < 17 && i > 12 && j < 17 && j > 12) {
+					//	printf(" s_mat[%d][%d][%d] = %f,  s_mat[%d][%d][%d] = %f, s_mat[%d][%d][%d] = %f, \n s_mat_n [%d][%d][%d] = %f\n", i-1,j,k, s_mat_l,  i+1, j, k, s_mat_r,  i, j, k, s_mat_c, i, j, k, s_mat_n[i][j][k]);
+					//}
+					//if (i == 14 && j == 14 && k == 15) {
+					//	printf("s_mat[%d][%d][%d] = %f,s_mat_n[%d][%d][%d] = %f \n", i, j, k, s_mat_c, i, j, k, s_mat_n[i][j][k]);
+					//}
+				
+					//printf("%f ", s_mat_n[i][j][k]);
 				}
+				
 			}
 		}
 		for (k = start; k <= end; k++) {
 			for (j = 0; j <= Y; j++) {
 				for (i = 0; i <= X; i++) {
 					u_n[i][j][k] = u[i][j][k] + 0.5 * time_step * (s_mat_n[i][j][k] - s_mat[i][j][k]);
+					//if (i== 14 && j==14 && k==14) {
+					//	printf("%f ", u_n[i][j][k]);
+					//	printf("\n");
+					//}
+					
 				}
 			}
 		}
@@ -420,14 +449,14 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 			for (k = start; k <= end; k++) {
 				for (j = 0; j <= Y; j++) {
 					for (i = 0; i <= X; i++) {
-						fprintf(fpWrite, "%lf ", u[i][j][k]);
+						fprintf(fpWrite, "%lf ", u_n[i][j][k]);
 					}
 					fprintf(fpWrite, "\n");
 				}
 			}
 			fclose(fpWrite);
 		}
-		else if (t % 25 == 0) {
+		else if (t % 5 == 0) {
 			FILE* fpWrite = fopen(names[n], "a");
 			if (fpWrite == NULL)
 			{
@@ -436,7 +465,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 			for (k = start; k <= end; k++) {
 				for (j = 0; j <= Y; j++) {
 					for (i = 0; i <= X; i++) {
-						fprintf(fpWrite, "%lf ", u[i][j][k]);
+						fprintf(fpWrite, "%lf ", u_n[i][j][k]);
 					}
 					fprintf(fpWrite, "\n");
 				}
