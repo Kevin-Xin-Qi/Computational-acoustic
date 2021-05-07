@@ -17,7 +17,7 @@
 
 //pthread_mutex_t test_mutex;
 #define N   3
-#define AVE 17*12*35/N
+#define AVE (17*12*5)/N
 #define X AVE*N+1
 #define Y AVE*N+1
 #define Z 50
@@ -52,8 +52,11 @@ void main()
 
 	//	clock_t start_time = time(NULL);
 	double t0, t1, t2, t3,thread_start,thread_end, t_cal_total, t_file_total,t_thread_total,t_fun,t_store;
+	t_thread_total = 0;
 	t_cal_total = 0;
 	t_file_total = 0;
+
+
 	//Declare Function
 
 	void* lax_wendroff_advection_all_in_1(void* arg);
@@ -262,6 +265,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 	double t_fun_start,t_fun_end;
 	double      start = n * AVE+1;
 	double      end = start + AVE - 1;
+	int process_count = 0;
 	long long      i, j;
 	t_fun_start=clock();
 	switch (n) {
@@ -272,6 +276,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 				l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
 				s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
 					+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
+				process_count++;
 			}
 		}
 		for (j = 0; j <= end; j++) {
@@ -331,6 +336,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 				l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
 				s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
 					+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
+				process_count++;
 			}
 		}
 		for (j = start; j <= Y; j++) {
@@ -386,6 +392,7 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 				l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
 				s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
 					+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
+				process_count++;
 			}
 		}
 		for (j = start; j <= end; j++) {
@@ -438,6 +445,6 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 	//pthread_mutex_unlock(&test_mutex);
 	t_fun_end=clock();
 	t_fun[t][n]=(t_fun_end-t_fun_start)/CLOCKS_PER_SEC;
-	printf("t_fun[%d][%d]= %f\n",t,n,t_fun[t][n]);
+	printf("t_fun[%d][%d]= %f, process_count = %d\n",t,n,t_fun[t][n], process_count);
 	
 }
