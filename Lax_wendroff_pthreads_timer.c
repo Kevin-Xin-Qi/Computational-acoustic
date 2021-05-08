@@ -59,7 +59,7 @@ void main()
 	struct  timeval  reassign_start;
 	struct  timeval  reassign_end;
     struct  timeval  end;
-	double main_total_t=0, malloc_total_t=0,ini_total_t=0,leap_frog_total_t=0,p_thread_total_t=0,reassign_total_t=0;
+	long main_total_t=0, malloc_total_t=0,ini_total_t=0,leap_frog_total_t=0,p_thread_total_t=0,reassign_total_t=0;
 
 
 
@@ -68,6 +68,7 @@ void main()
 	//Declare Function
 
 	void* lax_wendroff_advection_all_in_1(void* arg);
+	void* lax_wendroff_reassign(void* arg);
 
 	
 	float  viscosity;
@@ -212,6 +213,7 @@ void main()
 
 
 		gettimeofday(&reassign_start,NULL);
+
 		for (j = 0; j <= Y; j++) {
 			for (i = 0; i <= X; i++) {
 				u_p[i][j] = u[i][j];
@@ -222,19 +224,30 @@ void main()
 				s_mat_p[i][j] = s_mat[i][j];
 			}
 		}
+		// for (id = 0; id < N; id++)
+		// {
+		// 	pthread_create(pthread_id + id, NULL, lax_wendroff_reassign, (void *) (intptr_t) id);
+		// }
+
+		// for (id = 0; id < N; id++)
+		// {
+
+		// 	pthread_join(pthread_id[id], NULL);
+
+		// }
 		gettimeofday(&reassign_end,NULL);
-		leap_frog_total_t +=  (p_thread_start.tv_sec-leap_frog_start.tv_sec)+ (p_thread_start.tv_usec-leap_frog_start.tv_usec)*10e-6;
-		p_thread_total_t +=  (reassign_start.tv_sec-p_thread_start.tv_sec)+ (reassign_start.tv_usec-p_thread_start.tv_usec)*10e-6;
-		reassign_total_t +=  (reassign_end.tv_sec-reassign_start.tv_sec)+ (reassign_end.tv_usec-reassign_start.tv_usec)*10e-6;
+		leap_frog_total_t +=  ((long long)p_thread_start.tv_sec-(long long)leap_frog_start.tv_sec)*1000+ (p_thread_start.tv_usec-leap_frog_start.tv_usec)/1000;
+		p_thread_total_t +=  ((long long)reassign_start.tv_sec-(long long)p_thread_start.tv_sec)*1000+ (reassign_start.tv_usec-p_thread_start.tv_usec)/1000;
+		reassign_total_t +=  ((long long)reassign_end.tv_sec-(long long)reassign_start.tv_sec)*1000+ (reassign_end.tv_usec-reassign_start.tv_usec)/1000;
 		//printf("%f s  and   %f s and %f s and %f s\n", (t2 - t1) / CLOCKS_PER_SEC, (t3 - t2) / CLOCKS_PER_SEC,(t3-t0)/CLOCKS_PER_SEC, (t3 - t1) / CLOCKS_PER_SEC);
 
 	}
 	gettimeofday(&end,NULL);
-	main_total_t =  (end.tv_sec-start.tv_sec)+ (end.tv_usec-start.tv_usec)*10e-6;
-	malloc_total_t =  (initialisation_start.tv_sec-maclloc_start.tv_sec)+ (initialisation_start.tv_usec-maclloc_start.tv_usec)*10e-6;
+	main_total_t =  ((long long)end.tv_sec-(long long)start.tv_sec)*1000+ (end.tv_usec-start.tv_usec)/1000;
+	malloc_total_t =  ((long long)initialisation_start.tv_sec-(long long)maclloc_start.tv_sec)*1000+ (initialisation_start.tv_usec-maclloc_start.tv_usec)/1000;
 	//ini_total_t =  (end.tv_sec-initialisation_start.tv_sec)+ (end.tv_usec-start.tv_usec)*10e-6;
 
-	printf("main  %lf s\n malloc  %lf\n leap frog  %lf\n pthread  %lf \n reassign  %lf \n",main_total_t,malloc_total_t,leap_frog_total_t,p_thread_total_t, reassign_total_t);
+	printf("main  %ld s\n malloc  %ld\n leap frog  %ld\n pthread  %ld \n reassign  %ld \n",main_total_t,malloc_total_t,leap_frog_total_t,p_thread_total_t, reassign_total_t);
 //	for (i=0,i<T+1,i++){
 //			for (j=0,j<N,j++){
 //					t_store=t_fun[i][j];
@@ -273,23 +286,34 @@ void main()
 void* lax_wendroff_advection_all_in_1(void* arg) {
 
 	int            n =  (int) (intptr_t) arg;  //Nth thread
-	double t_fun_start,t_fun_end;
+	struct  timeval t_fun_start,t_fun_end;
+	long t_fun_th;
 	double      start = n * AVE+1;
 	double      end = start + AVE - 1;
-	int process_count = 0;
-	long long      i, j;
 
-	switch (n) {
-	case 0:
-		for (j = 1; j <= end; j++) {
-			for (i = 1; i <= X - 1; i++) {
+	long long      i, j;
+	gettimeofday(&t_fun_start,NULL);
+	for (j = start; j <= end; j++) {
+		for (i = 1; i <= X - 1; i++) {
 				r_mat_n[i][j] = r_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i + 1][j] - s_mat[i - 1][j])) + 0.5 * (1 - Coeff_x) * (r_mat[i + 1][j] - 2.0 * r_mat[i][j] + r_mat[i - 1][j]));
 				l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
 				s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
 					+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
-				process_count++;
-			}
+				
 		}
+	}
+
+	switch (n) {
+	case 0:
+		// for (j = 1; j <= end; j++) {
+		// 	for (i = 1; i <= X - 1; i++) {
+		// 		r_mat_n[i][j] = r_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i + 1][j] - s_mat[i - 1][j])) + 0.5 * (1 - Coeff_x) * (r_mat[i + 1][j] - 2.0 * r_mat[i][j] + r_mat[i - 1][j]));
+		// 		l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
+		// 		s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
+		// 			+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
+		// 		process_count++;
+		// 	}
+		// }
 		for (j = 0; j <= end; j++) {
 			for (i = 0; i <= X; i++) {
 				u_n[i][j] = u[i][j] + 0.5 * time_step * (s_mat_n[i][j] - s_mat[i][j]);
@@ -341,15 +365,15 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 		break;
 
 	case N-1:
-		for (j = start; j <= Y - 1; j++) {
-			for (i = 1; i <= X - 1; i++) {
-				r_mat_n[i][j] = r_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i + 1][j] - s_mat[i - 1][j])) + 0.5 * (1 - Coeff_x) * (r_mat[i + 1][j] - 2.0 * r_mat[i][j] + r_mat[i - 1][j]));
-				l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
-				s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
-					+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
-				process_count++;
-			}
-		}
+		// for (j = start; j <= Y - 1; j++) {
+		// 	for (i = 1; i <= X - 1; i++) {
+		// 		r_mat_n[i][j] = r_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i + 1][j] - s_mat[i - 1][j])) + 0.5 * (1 - Coeff_x) * (r_mat[i + 1][j] - 2.0 * r_mat[i][j] + r_mat[i - 1][j]));
+		// 		l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
+		// 		s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
+		// 			+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
+		// 		process_count++;
+		// 	}
+		// }
 		for (j = start; j <= Y; j++) {
 			for (i = 0; i <= X; i++) {
 				u_n[i][j] = u[i][j] + 0.5 * time_step * (s_mat_n[i][j] - s_mat[i][j]);
@@ -397,15 +421,15 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 		break;
 
 	default:
-		for (j = start; j <= end; j++) {
-			for (i = 1; i <= X - 1; i++) {
-				r_mat_n[i][j] = r_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i + 1][j] - s_mat[i - 1][j])) + 0.5 * (1 - Coeff_x) * (r_mat[i + 1][j] - 2.0 * r_mat[i][j] + r_mat[i - 1][j]));
-				l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
-				s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
-					+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
-				process_count++;
-			}
-		}
+		// for (j = start; j <= end; j++) {
+		// 	for (i = 1; i <= X - 1; i++) {
+		// 		r_mat_n[i][j] = r_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i + 1][j] - s_mat[i - 1][j])) + 0.5 * (1 - Coeff_x) * (r_mat[i + 1][j] - 2.0 * r_mat[i][j] + r_mat[i - 1][j]));
+		// 		l_mat_n[i][j] = l_mat[i][j] + (Coeff_x * (0.5 * (s_mat[i][j + 1] - s_mat[i][j - 1])) + 0.5 * (1 - Coeff_x) * (l_mat[i][j + 1] - 2.0 * l_mat[i][j] + l_mat[i][j - 1]));
+		// 		s_mat_n[i][j] = s_mat[i][j] + (Coeff_x * (0.5 * (r_mat[i + 1][j] - r_mat[i - 1][j]) + 0.5 * (1 - Coeff_x) * (s_mat[i + 1][j] - 2 * s_mat[i][j] + s_mat[i - 1][j])))\
+		// 			+ (Coeff_x * (0.5 * (l_mat[i][j + 1] - l_mat[i][j - 1]) + 0.5 * (1 - Coeff_x) * (s_mat[i][j + 1] - 2 * s_mat[i][j] + s_mat[i][j - 1])));
+		// 		process_count++;
+		// 	}
+		// }
 		for (j = start; j <= end; j++) {
 			for (i = 0; i <= X; i++) {
 				u_n[i][j] = u[i][j] + 0.5 * time_step * (s_mat_n[i][j] - s_mat[i][j]);
@@ -454,7 +478,27 @@ void* lax_wendroff_advection_all_in_1(void* arg) {
 	
 	}
 	//pthread_mutex_unlock(&test_mutex);
-
-	// printf("t_fun[%d][%d]= %f, process_count = %d\n",t,n,t_fun[t][n], process_count);
+	gettimeofday(&t_fun_end,NULL);
+	t_fun_th =  ((long long)t_fun_end.tv_sec-(long long)t_fun_start.tv_sec)*1000+ (t_fun_end.tv_usec-t_fun_start.tv_usec)/1000;
+	printf("t_fun[%d][%d]= %ld ms\n",t,n,t_fun_th );
 	
+}
+
+void* lax_wendroff_reassign(void* arg){
+	int            n =  (int) (intptr_t) arg;  //Nth thread
+	struct  timeval t_fun_start,t_fun_end;
+	double t_fun_th;
+	double      start = n * AVE+1;
+	double      end = start + AVE - 1;
+	long long      i, j;
+	for (j = start; j <= end; j++) {
+		for (i = 0; i <= X; i++) {
+			u_p[i][j] = u[i][j];
+			u[i][j] = u_n[i][j];
+			r_mat[i][j] = r_mat_n[i][j];
+			l_mat[i][j] = l_mat_n[i][j];
+			s_mat[i][j] = s_mat_n[i][j];
+			s_mat_p[i][j] = s_mat[i][j];
+		}
+	}
 }
