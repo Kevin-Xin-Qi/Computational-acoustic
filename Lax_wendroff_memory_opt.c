@@ -36,7 +36,7 @@ double t_fun[T+1][N];
 char* names[12];
 
 
-double* (u_n[N]) ;
+double* u_n[N] ;
 double* u[N] ;
 double* u_p[N] ;
 double* r_mat[N] ;
@@ -77,7 +77,7 @@ void main()
 
 	double    t0_g, tp_g, square_of_Coeff_x, Q_x, y;
 	int var_c,var_ip1,var_jp1,var_im1,var_jm1,mid_k,mid_var,mid_var_ip1,mid_var_jp1,mid_var_im1,mid_var_jm1;
-	int i, j, k, P_coeff, id,k_mid;
+	int i, j, k, P_coeff, id,k_mid,pth;
 	double k1,k2,k3,k1_mid,k2_mid,k3_mid;
 
 	P_coeff = 1024 * 1024;
@@ -97,12 +97,12 @@ void main()
 	k1_mid = k2_mid / k3_mid + 1;
 	k_mid = (int)k1_mid;
 
-	mid_k=(((int)mid_Y-AVE-1) /AVE +1);
-	mid_var=VARM((int)mid_X,(int)mid_Y)-(AVE+1)*(X+1)-k_mid*(AVE)*(X + 1);
-	mid_var_ip1=VARM(((int)mid_X+1),(int)mid_Y)-(AVE+1)* (X + 1) -k_mid*(AVE)* (X + 1);
-	mid_var_jp1=VARM((int)mid_X,((int)mid_Y+1))-(AVE+1)* (X + 1) -k_mid*(AVE)* (X + 1);
-	mid_var_im1=VARM(((int)mid_X-1),(int)mid_Y)-(AVE+1)* (X + 1) -k_mid*(AVE)* (X + 1);
-	mid_var_jm1=VARM((int)mid_X,((int)mid_Y-1))-(AVE+1)* (X + 1) -k_mid*(AVE)* (X + 1);
+	//mid_k=(((int)mid_Y-AVE-1) /AVE +1);
+	mid_var=VARM((int)mid_X,(int)mid_Y)-(AVE+1)*(X+1)-(k_mid-1)*(AVE)*(X + 1);
+	mid_var_ip1=VARM(((int)mid_X+1),(int)mid_Y)-(AVE+1)* (X + 1) -(k_mid-1)*(AVE)* (X + 1);
+	mid_var_jp1=VARM((int)mid_X,((int)mid_Y+1))-(AVE+1)* (X + 1) -(k_mid-1)*(AVE)* (X + 1);
+	mid_var_im1=VARM(((int)mid_X-1),(int)mid_Y)-(AVE+1)* (X + 1) -(k_mid-1)*(AVE)* (X + 1);
+	mid_var_jm1=VARM((int)mid_X,((int)mid_Y-1))-(AVE+1)* (X + 1) -(k_mid-1)*(AVE)* (X + 1);
 
 	
 	char names1[] = { "wave_data_lax_wendroff_tm1.txt" };
@@ -132,7 +132,6 @@ void main()
 	gettimeofday(&maclloc_start,NULL);	
 
 	for (i = 0; i < N; i++){
-
 		if(i == 0 || i == N-1){
 		u_n[i] = malloc(sizeof(double) * (X + 1)* (AVE + 1));
 		u [i] = malloc(sizeof(double) * (X + 1)* (AVE + 1));
@@ -156,10 +155,7 @@ void main()
 		r_mat_n [i] = malloc(sizeof(double) * (X + 1)* (AVE));
 		l_mat_n [i] = malloc(sizeof(double) * (X + 1)* (AVE));
 		s_mat_p [i] = malloc(sizeof(double) * (X + 1)* (AVE));
-
-
 		}
-
 	}
 
 
@@ -181,27 +177,27 @@ void main()
 			for (i = 0; i <= X; i++) {
 				//
 				if(j<=AVE){
-					k = 0;
+					pth = 0;
 				}
 				else if (j >= (N-1)*AVE+1){
-					k = N-1;
+					pth = N-1;
 				}
 				else{
 					k2 = (j - (double)AVE - 1);
 					k3 = (double)AVE;
 					k1 = k2 / k3 + 1;
-					k =(int)k1;
+					pth =(int)k1;
 				}
-				if (k==0){
+				if (pth==0){
 					var_c=VARM(i,j);
 				}
 				else{
-					var_c=VARM(i,j)-(AVE+1)*(X+1)-(k-1)*(AVE)* (X + 1);
+					var_c=VARM(i,j)-(AVE+1)*(X+1)-(pth-1)*(AVE)* (X + 1);
 				}
 				//
 
-			s_mat_p[k][var_c] = r_mat_n[k][var_c] = s_mat_n[k][var_c] = l_mat_n[k][var_c] = r_mat[k][var_c] = s_mat[k][var_c] = l_mat[k][var_c] = u_p[k][var_c] = u[k][var_c] = u_n[k][var_c] = 0;
-			//printf("%lf  ", u_n[k][var_c]);
+			s_mat_p[pth][var_c] = r_mat_n[pth][var_c] = s_mat_n[pth][var_c] = l_mat_n[pth][var_c] = r_mat[pth][var_c] = s_mat[pth][var_c] = l_mat[pth][var_c] = u_p[pth][var_c] = u[pth][var_c] = u_n[pth][var_c] = 0;
+			//printf("%lf  ", u_n[pth][var_c]);
 
 			}
 
@@ -212,89 +208,89 @@ void main()
 
 	for (t = 0; t <= T; t++) {
 		gettimeofday(&leap_frog_start,NULL);
-		u[mid_k][mid_var] = P_coeff * exp(-pow((t - t0_g + 1) / tp_g, 2));
+		u[k_mid][mid_var] = P_coeff * exp(-pow((t - t0_g + 1) / tp_g, 2));
 		 if (t == 0) {
 			for (j = 1; j <= Y-1 ; j++) {
 				for (i = 1; i <= X-1 ; i++) {
 					//
 					if (j <= AVE) {
-						k = 0;
+						pth = 0;
 					}
 					else if (j >= (N - 1) * AVE + 1) {
-						k = N - 1;
+						pth = N - 1;
 					}
 					else {
 						k2 = (j - (double)AVE - 1);
 						k3 = (double)AVE;
 						k1 = k2 / k3 + 1;
-						k = (int)k1;
+						pth = (int)k1;
 					}
 				//
 
-				switch (k){
+				switch (pth){
 				case 0:
 					var_c=VARM(i,j);
 					var_ip1=VARM((i+1),j);
 					var_im1=VARM((i-1),j);
 					var_jm1=VARM(i,(j-1));
 				if (j==AVE){
-					var_jp1=VARM(i,(j+1))-(AVE+1)* (X + 1) -((k+1)-1)*(AVE)* (X + 1);
-					u_n[k][var_c] = 2 * u[k][var_c] - u_p[k][var_c] + square_of_Coeff_x * (u[k][var_im1] + u[k][var_jm1] + u[k][var_ip1] + u[k+1][var_jp1] - 4 * u[k][var_c]);
-					//printf("%lf",u_n[k][var_c]);
+					var_jp1=VARM(i,(j+1))-(AVE+1)* (X + 1) -((pth+1)-1)*(AVE)* (X + 1);
+					u_n[pth][var_c] = 2 * u[pth][var_c] - u_p[pth][var_c] + square_of_Coeff_x * (u[pth][var_im1] + u[pth][var_jm1] + u[pth][var_ip1] + u[pth+1][var_jp1] - 4 * u[pth][var_c]);
+					//printf("%lf",u_n[pth][var_c]);
 				}else{
 					var_jp1=VARM(i,(j+1));
-					u_n[k][var_c] = 2 * u[k][var_c] - u_p[k][var_c] + square_of_Coeff_x * (u[k][var_im1] + u[k][var_jm1] + u[k][var_ip1] + u[k][var_jp1] - 4 * u[k][var_c]);
-					//printf("%lf",u_n[k][var_c]);
+					u_n[pth][var_c] = 2 * u[pth][var_c] - u_p[pth][var_c] + square_of_Coeff_x * (u[pth][var_im1] + u[pth][var_jm1] + u[pth][var_ip1] + u[pth][var_jp1] - 4 * u[pth][var_c]);
+					//printf("%lf",u_n[pth][var_c]);
 				}
 				//printf("[i=%d, j=%d] ", i, j);
 					break;
 				case N-1:
-					var_c=VARM(i,j)-(AVE+1)* (X + 1) -(k-1)*(AVE)* (X + 1);
-					var_ip1=VARM((i+1),j)-(AVE+1)* (X + 1) -(k-1)*(AVE)* (X + 1);
-					var_im1=VARM((i-1),j)-(AVE+1)* (X + 1) -(k-1)*(AVE)* (X + 1);
-					var_jp1=VARM(i,(j+1))-(AVE+1)* (X + 1) -(k-1)*(AVE)* (X + 1);
-					if(j==k*AVE+1){
-						if (k == 1) {
+					var_c=VARM(i,j)-(AVE+1)* (X + 1) -(pth-1)*(AVE)* (X + 1);
+					var_ip1=VARM((i+1),j)-(AVE+1)* (X + 1) -(pth-1)*(AVE)* (X + 1);
+					var_im1=VARM((i-1),j)-(AVE+1)* (X + 1) -(pth-1)*(AVE)* (X + 1);
+					var_jp1=VARM(i,(j+1))-(AVE+1)* (X + 1) -(pth-1)*(AVE)* (X + 1);
+					if(j==pth*AVE+1){
+						if (pth == 1) {
 							var_jm1 = VARM(i, (j - 1));
 						}
 						else {
-							var_jm1 = VARM(i, (j - 1)) - (AVE + 1) * (X+1) - ((k - 1) - 1) * (AVE)*(X+1);
+							var_jm1 = VARM(i, (j - 1)) - (AVE + 1) * (X+1) - ((pth - 1) - 1) * (AVE)*(X+1);
 						}
-						u_n[k][var_c] = 2 * u[k][var_c] - u_p[k][var_c] + square_of_Coeff_x * (u[k][var_im1] + u[k-1][var_jm1] + u[k][var_ip1] + u[k][var_jp1] - 4 * u[k][var_c]);
-						//printf("%lf",u_n[k][var_c]);
+						u_n[pth][var_c] = 2 * u[pth][var_c] - u_p[pth][var_c] + square_of_Coeff_x * (u[pth][var_im1] + u[pth-1][var_jm1] + u[pth][var_ip1] + u[pth][var_jp1] - 4 * u[pth][var_c]);
+						//printf("%lf",u_n[pth][var_c]);
 					}else{
-						var_jm1=VARM(i,(j-1))-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
-						u_n[k][var_c] = 2 * u[k][var_c] - u_p[k][var_c] + square_of_Coeff_x * (u[k][var_im1] + u[k][var_jm1] + u[k][var_ip1] + u[k][var_jp1] - 4 * u[k][var_c]);
-						//printf("%lf",u_n[k][var_c]);
+						var_jm1=VARM(i,(j-1))-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
+						u_n[pth][var_c] = 2 * u[pth][var_c] - u_p[pth][var_c] + square_of_Coeff_x * (u[pth][var_im1] + u[pth][var_jm1] + u[pth][var_ip1] + u[pth][var_jp1] - 4 * u[pth][var_c]);
+						//printf("%lf",u_n[pth][var_c]);
 					}
 					//printf("[i=%d, j=%d] ", i, j);
 					break;
 				default:
-					var_c=VARM(i,j)-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
-					var_ip1=VARM((i+1),j)-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
-					var_im1=VARM((i-1),j)-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
+					var_c=VARM(i,j)-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
+					var_ip1=VARM((i+1),j)-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
+					var_im1=VARM((i-1),j)-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
 
-				if (j==AVE*(k+1)){
-					var_jm1=VARM(i,(j-1))-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
-					var_jp1=VARM(i,(j+1))-(AVE+1)*(X+1)-((k+1)-1)*(AVE)*(X+1);
-					u_n[k][var_c] = 2 * u[k][var_c] - u_p[k][var_c] + square_of_Coeff_x * (u[k][var_im1] + u[k][var_jm1] + u[k][var_ip1] + u[k+1][var_jp1] - 4 * u[k][var_c]);
-					//printf("%lf",u_n[k][var_c]);
-				}else if(j==AVE*k+1){
-					var_jp1=VARM(i,(j+1))-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
-					if (k == 1) {
+				if (j==AVE*(pth+1)){
+					var_jm1=VARM(i,(j-1))-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
+					var_jp1=VARM(i,(j+1))-(AVE+1)*(X+1)-((pth+1)-1)*(AVE)*(X+1);
+					u_n[pth][var_c] = 2 * u[pth][var_c] - u_p[pth][var_c] + square_of_Coeff_x * (u[pth][var_im1] + u[pth][var_jm1] + u[pth][var_ip1] + u[pth+1][var_jp1] - 4 * u[pth][var_c]);
+					//printf("%lf",u_n[pth][var_c]);
+				}else if(j==AVE*pth+1){
+					var_jp1=VARM(i,(j+1))-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
+					if (pth == 1) {
 						var_jm1 = VARM(i, (j - 1));
 					}
 					else{
-						var_jm1 = VARM(i, (j - 1)) - (AVE + 1) * (X+1) - ((k - 1) - 1) * (AVE)*(X+1);
+						var_jm1 = VARM(i, (j - 1)) - (AVE + 1) * (X+1) - ((pth - 1) - 1) * (AVE)*(X+1);
 					}
 					
-					u_n[k][var_c] = 2 * u[k][var_c] - u_p[k][var_c] + square_of_Coeff_x * (u[k][var_im1] + u[k-1][var_jm1] + u[k][var_ip1] + u[k][var_jp1] - 4 * u[k][var_c]);
-					//printf("%lf",u_n[k][var_c]);
+					u_n[pth][var_c] = 2 * u[pth][var_c] - u_p[pth][var_c] + square_of_Coeff_x * (u[pth][var_im1] + u[pth-1][var_jm1] + u[pth][var_ip1] + u[pth][var_jp1] - 4 * u[pth][var_c]);
+					//printf("%lf",u_n[pth][var_c]);
 				}else{
-					var_jp1=VARM(i,(j+1))-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
-					var_jm1=VARM(i,(j-1))-(AVE+1)*(X+1)-(k-1)*(AVE)*(X+1);
-					u_n[k][var_c] = 2 * u[k][var_c] - u_p[k][var_c] + square_of_Coeff_x * (u[k][var_im1] + u[k][var_jm1] + u[k][var_ip1] + u[k][var_jp1] - 4 * u[k][var_c]);
-	/*				printf("%lf",u_n[k][var_c]);*/
+					var_jp1=VARM(i,(j+1))-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
+					var_jm1=VARM(i,(j-1))-(AVE+1)*(X+1)-(pth-1)*(AVE)*(X+1);
+					u_n[pth][var_c] = 2 * u[pth][var_c] - u_p[pth][var_c] + square_of_Coeff_x * (u[pth][var_im1] + u[pth][var_jm1] + u[pth][var_ip1] + u[pth][var_jp1] - 4 * u[pth][var_c]);
+	/*				printf("%lf",u_n[pth][var_c]);*/
 				} 
 				//printf("[i=%d, j=%d] ", i,j);
 					break;
@@ -306,9 +302,9 @@ void main()
 			}
 		 }
 
-		r_mat[mid_k][mid_var] = c0 * (u[mid_k][mid_var_ip1] - u[mid_k][mid_var_im1]) / (2.0 * grid_size_x);
-		l_mat[mid_k][mid_var] = c0 * (u[mid_k][mid_var_jp1] - u[mid_k][mid_var_jm1]) / (2.0 * grid_size_x);
-		s_mat[mid_k][mid_var] = 2 * (u[mid_k][mid_var] - u_p[mid_k][mid_var]) / time_step + s_mat_p[mid_k][mid_var];
+		r_mat[k_mid][mid_var] = c0 * (u[k_mid][mid_var_ip1] - u[k_mid][mid_var_im1]) / (2.0 * grid_size_x);
+		l_mat[k_mid][mid_var] = c0 * (u[k_mid][mid_var_jp1] - u[k_mid][mid_var_jm1]) / (2.0 * grid_size_x);
+		s_mat[k_mid][mid_var] = 2 * (u[k_mid][mid_var] - u_p[k_mid][mid_var]) / time_step + s_mat_p[k_mid][mid_var];
 
 
 		//--------------------ALL in one-------------------------------------
